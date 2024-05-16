@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API to Excel</title>
+    <!-- Importando la librería SheetJS desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+</head>
+<body>
+    <button onclick="getDataAndExport()">Exportar a Excel</button>
+
+    <script>
+        // Función para obtener datos de la API y exportar a Excel
+        function getDataAndExport() {
+            // URL de la API
+            const apiUrl = 'https://jsonplaceholder.typicode.com/posts';
+
+            // Realizar solicitud GET a la API
+            fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Convertir los datos a formato compatible con SheetJS
+                const sheetData = data.map(item => [item.id, item.title, item.body]);
+                
+                // Crear un libro de Excel
+                const workbook = XLSX.utils.book_new();
+                const worksheet = XLSX.utils.aoa_to_sheet([['ID', 'Título', 'Contenido'], ...sheetData]);
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Posts');
+
+                // Guardar el libro de Excel como archivo
+                const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+                saveAsExcelFile(excelBuffer, 'posts.xlsx');
+            })
+            .catch(error => {
+                console.error('Error al obtener datos de la API:', error);
+            });
+        }
+
+        // Función para guardar el archivo Excel y descargarlo
+        function saveAsExcelFile(buffer, fileName) {
+            const data = new Blob([buffer], { type: 'application/octet-stream' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(data);
+            link.download = fileName;
+            link.click();
+        }
+    </script>
+</body>
+</html>
